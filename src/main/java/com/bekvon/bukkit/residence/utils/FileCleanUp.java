@@ -70,7 +70,7 @@ public class FileCleanUp {
 
 	    ResidencePlayer rPlayer = plugin.getPlayerManager().getResidencePlayer(player.getUniqueId());
 
-	    plugin.getResidenceManager().removeResidence(rPlayer, oneName.getValue(), true, plugin.getConfigManager().isAutoCleanUpRegenerate());
+	    plugin.getResidenceManager().removeResidence(res);
 	    i++;
 	}
 	Bukkit.getConsoleSender().sendMessage(plugin.getPrefix() + " Auto CleanUp deleted " + i + " residences!");

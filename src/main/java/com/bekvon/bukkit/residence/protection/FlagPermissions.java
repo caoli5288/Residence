@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
+import com.bekvon.bukkit.residence.utils.Pair;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -27,6 +28,8 @@ import com.bekvon.bukkit.residence.containers.MinimizeFlags;
 import com.bekvon.bukkit.residence.containers.ResidencePlayer;
 import com.bekvon.bukkit.residence.containers.lm;
 import com.bekvon.bukkit.residence.permissions.PermissionGroup;
+
+import static com.bekvon.bukkit.residence.$.nil;
 
 public class FlagPermissions {
 
@@ -516,6 +519,16 @@ public class FlagPermissions {
 	}
 	return def;
     }
+
+    public Pair<String, Boolean> has(Flags flag) {
+    	if (cuboidFlags.containsKey(flag.getName())) {
+    		return new Pair<>(flag.getName(), cuboidFlags.get(flag.getName()));
+		}
+		if (!nil(parent)) {
+    		return parent.has(flag);
+		}
+		return new Pair<>(flag.getName(), null);
+	}
 
     @Deprecated
     public boolean has(String flag, boolean def) {

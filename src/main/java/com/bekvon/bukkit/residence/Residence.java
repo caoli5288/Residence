@@ -735,6 +735,9 @@ public class Residence extends JavaPlugin {
         getShopSignUtilManager().BoardUpdate();
         getVersionChecker().VersionCheck(null);
 
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            PlaceholderSupport.hook(this);
+        }
     }
 
     public SignUtil getSignUtil() {

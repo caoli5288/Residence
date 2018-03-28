@@ -65,12 +65,18 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/CrackShot.jar</systemPath>
         </dependency>
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.8.2</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <repositories>
         <repository>
             <id>1</id>
-            <url>http://ci.mengcraft.com:8080/plugin/repository/</url>
+            <url>http://ci.mengcraft.com:8080/plugin/repository/everything/</url>
         </repository>
         <repository>
             <id>sk89q-repo</id>
