@@ -85,7 +85,7 @@ public class rt implements cmd {
 	    return false;
 
 	int sec = plugin.getConfigManager().getrtCooldown();
-	if (plugin.getRandomTeleportMap().containsKey(tPlayer.getName()) && !resadmin) {
+	if (plugin.getRandomTeleportMap().containsKey(tPlayer.getName()) && !resadmin && !plugin.hasPermission(sender, "residence.randomtp.cooldownbypass", false)) {
 	    if (plugin.getRandomTeleportMap().get(tPlayer.getName()) + (sec * 1000) > System.currentTimeMillis()) {
 		int left = (int) (sec - ((System.currentTimeMillis() - plugin.getRandomTeleportMap().get(tPlayer.getName())) / 1000));
 		plugin.msg(tPlayer, lm.RandomTeleport_TpLimit, left);
@@ -105,7 +105,7 @@ public class rt implements cmd {
 	    return true;
 	}
 
-	if (plugin.getConfigManager().getTeleportDelay() > 0 && !resadmin) {
+	if (plugin.getConfigManager().getTeleportDelay() > 0 && !resadmin && !plugin.hasPermission(sender, "residence.randomtp.delaybypass", false)) {
 	    plugin.msg(tPlayer, lm.RandomTeleport_TeleportStarted, loc.getX(), loc.getY(), loc
 		.getZ(), plugin.getConfigManager().getTeleportDelay());
 	    plugin.getTeleportDelayMap().add(tPlayer.getName());

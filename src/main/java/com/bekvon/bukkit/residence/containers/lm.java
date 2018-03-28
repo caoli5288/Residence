@@ -86,7 +86,7 @@ public enum lm {
     Sign_ForSaleTopLine("&8For Sale"),
     Sign_ForSalePriceLine("&8%1"),
     Sign_ForSaleResName("&8%1"),
-    Sign_ForSaleBottomLine("&5Available"),
+    Sign_ForSaleBottom("&5%1m\u00B3"),
     Sign_LookAt("&cYou are not looking at sign"),
 
     Flag_Set("&eFlag (&6%1&e) set for &6%2 &eto &6%3 &estate"),
@@ -100,12 +100,15 @@ public enum lm {
     Flag_Deny("&cYou dont have &6%1 &cpermission<s> here."),
     Flag_SetDeny("&cOwner does not have access to flag &6%1"),
     Flag_ChangeDeny("&cYou cant change &6%1 &cflag state while there is &6%2 &cplayer(s) inside."),
+    Flag_ChangedFor("&eChanged &6%1 &eflags from &6%2 &eresidences checked"),
+    Flag_reset("&eReset flags for &6%1 &eresidence"),
+    Flag_resetAll("&eReset flags for &6%1 &eresidences"),
 
     Bank_NoAccess("&cYou dont have bank access."),
     Bank_Name(" &eBank: &6%1"),
     Bank_NoMoney("&cNot enough money in the bank."),
     Bank_Deposit("&eYou deposit &6%1 &einto the residence bank."),
-    Bank_Withdraw("&eYou withdraw &6%1 from the residence bank."),
+    Bank_Withdraw("&eYou withdraw &6%1 &efrom the residence bank."),
 
     Subzone_Rename("&eRenamed subzone &6%1 &eto &6%2"),
     Subzone_Remove("&eSubzone &6%1 &eremoved."),

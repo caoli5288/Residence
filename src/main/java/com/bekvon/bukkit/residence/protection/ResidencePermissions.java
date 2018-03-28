@@ -1,14 +1,5 @@
 package com.bekvon.bukkit.residence.protection;
 
-import com.bekvon.bukkit.residence.Residence;
-import com.bekvon.bukkit.residence.containers.Flags;
-import com.bekvon.bukkit.residence.containers.ResidencePlayer;
-import com.bekvon.bukkit.residence.containers.lm;
-import com.bekvon.bukkit.residence.event.ResidenceFlagChangeEvent;
-import com.bekvon.bukkit.residence.event.ResidenceFlagCheckEvent;
-import com.bekvon.bukkit.residence.event.ResidenceFlagEvent.FlagType;
-import com.bekvon.bukkit.residence.event.ResidenceOwnerChangeEvent;
-import com.bekvon.bukkit.residence.permissions.PermissionGroup;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,6 +11,16 @@ import java.util.UUID;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import com.bekvon.bukkit.residence.Residence;
+import com.bekvon.bukkit.residence.containers.Flags;
+import com.bekvon.bukkit.residence.containers.ResidencePlayer;
+import com.bekvon.bukkit.residence.containers.lm;
+import com.bekvon.bukkit.residence.event.ResidenceFlagChangeEvent;
+import com.bekvon.bukkit.residence.event.ResidenceFlagCheckEvent;
+import com.bekvon.bukkit.residence.event.ResidenceFlagEvent.FlagType;
+import com.bekvon.bukkit.residence.event.ResidenceOwnerChangeEvent;
+import com.bekvon.bukkit.residence.permissions.PermissionGroup;
 
 public class ResidencePermissions extends FlagPermissions {
 
@@ -351,11 +352,18 @@ public class ResidencePermissions extends FlagPermissions {
 	return false;
     }
 
+    @Deprecated
     public boolean setFlag(CommandSender sender, String flag, String flagstate, boolean resadmin) {
-	if (validFlagGroups.containsKey(flag))
-	    return this.setFlagGroup(sender, flag, flagstate, resadmin);
+	return setFlag(sender, flag, FlagPermissions.stringToFlagState(flagstate), resadmin);
+    }
 
-	FlagState state = FlagPermissions.stringToFlagState(flagstate);
+    public boolean setFlag(CommandSender sender, String flag, FlagState state, boolean resadmin) {
+	return setFlag(sender, flag, state, resadmin, true);
+    }
+
+    public boolean setFlag(CommandSender sender, String flag, FlagState state, boolean resadmin, boolean inform) {
+	if (validFlagGroups.containsKey(flag))
+	    return this.setFlagGroup(sender, flag, state, resadmin);
 
 	if (Residence.getInstance().getConfigManager().isPvPFlagPrevent()) {
 	    for (String oneFlag : Residence.getInstance().getConfigManager().getProtectedFlagsList()) {
@@ -369,7 +377,8 @@ public class ResidencePermissions extends FlagPermissions {
 			if (!one.getName().equals(this.getOwner()))
 			    size++;
 		    }
-		    Residence.getInstance().msg(sender, lm.Flag_ChangeDeny, flag, size);
+		    if (inform)
+			Residence.getInstance().msg(sender, lm.Flag_ChangeDeny, flag, size);
 		    return false;
 		}
 	    }
@@ -382,7 +391,8 @@ public class ResidencePermissions extends FlagPermissions {
 	    if (fc.isCancelled())
 		return false;
 	    if (super.setFlag(flag, state)) {
-		Residence.getInstance().msg(sender, lm.Flag_Set, flag, this.residence.getName(), flagstate);
+		if (inform)
+		    Residence.getInstance().msg(sender, lm.Flag_Set, flag, this.residence.getName(), state.name());
 		return true;
 	    }
 	}
@@ -483,14 +493,14 @@ public class ResidencePermissions extends FlagPermissions {
 	}
     }
 
-    public void setOwner(Player player, boolean resetFlags) {
+    public boolean setOwner(Player player, boolean resetFlags) {
 
 	ResidenceOwnerChangeEvent ownerchange = new ResidenceOwnerChangeEvent(residence, player);
 	Residence.getInstance().getServ().getPluginManager().callEvent(ownerchange);
 
 	// Dont change owner if event is canceled
 	if (ownerchange.isCancelled())
-	    return;
+	    return false;
 
 	Residence.getInstance().getPlayerManager().removeResFromPlayer(residence.getOwnerUUID(), residence);
 	Residence.getInstance().getPlayerManager().addResidence(player, residence);
@@ -500,6 +510,8 @@ public class ResidencePermissions extends FlagPermissions {
 
 	if (resetFlags)
 	    this.applyDefaultFlags();
+
+	return true;
     }
 
     public void setOwner(String newOwner, boolean resetFlags) {
@@ -517,8 +529,6 @@ public class ResidencePermissions extends FlagPermissions {
 	ResidencePlayer rPlayer = Residence.getInstance().getPlayerManager().getResidencePlayer(newOwner);
 	if (rPlayer != null)
 	    this.ownerUUID = rPlayer.getUuid();
-	
-	Residence.getInstance().getPlayerManager().addResidence(newOwner, residence);
 
 	if (newOwner.equalsIgnoreCase("Server Land") || newOwner.equalsIgnoreCase(Residence.getInstance().getServerLandname())) {
 	    ownerUUID = UUID.fromString(Residence.getInstance().getServerLandUUID());// the UUID for server owned land
@@ -529,6 +539,7 @@ public class ResidencePermissions extends FlagPermissions {
 	    else
 		ownerUUID = UUID.fromString(Residence.getInstance().getTempUserUUID());//the fake UUID used when unable to find the real one, will be updated with players real UUID when its possible to find it
 	}
+	Residence.getInstance().getPlayerManager().addResidence(newOwner, residence);
 	if (resetFlags)
 	    this.applyDefaultFlags();
     }
@@ -643,7 +654,12 @@ public class ResidencePermissions extends FlagPermissions {
 	}
     }
 
+    @Deprecated
     public boolean setFlagGroup(CommandSender sender, String flaggroup, String state, boolean resadmin) {
+	return setFlagGroup(sender, flaggroup, FlagPermissions.stringToFlagState(state), resadmin);
+    }
+
+    public boolean setFlagGroup(CommandSender sender, String flaggroup, FlagState state, boolean resadmin) {
 	if (FlagPermissions.validFlagGroups.containsKey(flaggroup)) {
 	    ArrayList<String> flags = FlagPermissions.validFlagGroups.get(flaggroup);
 	    boolean changed = false;

@@ -49,7 +49,7 @@ public class TransactionManager implements MarketBuyInterface {
 	return true;
     }
 
-    public boolean giveEconomyMoney(Player player, int amount) {
+    public boolean giveEconomyMoney(Player player, double amount) {
 	if (player == null)
 	    return false;
 	if (amount == 0)
@@ -61,7 +61,21 @@ public class TransactionManager implements MarketBuyInterface {
 	}
 
 	econ.add(player.getName(), amount);
-	plugin.msg(player, lm.Economy_MoneyAdded, String.format("%d", amount), econ.getName());
+	plugin.msg(player, lm.Economy_MoneyAdded, plugin.getEconomyManager().format(amount), econ.getName());
+	return true;
+    }
+
+    @Deprecated
+    public boolean giveEconomyMoney(String playerName, double amount) {
+	if (playerName == null)
+	    return false;
+	if (amount == 0)
+	    return true;
+	EconomyInterface econ = plugin.getEconomyManager();
+	if (econ == null) {
+	    return false;
+	}
+	econ.add(playerName, amount);
 	return true;
     }
 
@@ -233,12 +247,12 @@ public class TransactionManager implements MarketBuyInterface {
 	    v.setAreas(res);
 	    plugin.getSelectionManager().showBounds(player, v);
 
-	    plugin.msg(player, lm.Economy_MoneyCharged, String.format("%d", amount), econ.getName());
+	    plugin.msg(player, lm.Economy_MoneyCharged, plugin.getEconomyManager().format(amount), econ.getName());
 	    plugin.msg(player, lm.Residence_Bought, res.getResidenceName());
 	    Player seller = serv.getPlayer(sellerName);
 	    if (seller != null && seller.isOnline()) {
 		seller.sendMessage(plugin.msg(lm.Residence_Buy, player.getName(), res.getResidenceName()));
-		seller.sendMessage(plugin.msg(lm.Economy_MoneyCredit, String.format("%d", amount), econ.getName()));
+		seller.sendMessage(plugin.msg(lm.Economy_MoneyCredit, plugin.getEconomyManager().format(amount), econ.getName()));
 	    }
 	} else {
 	    plugin.msg(player, lm.Economy_NotEnoughMoney);

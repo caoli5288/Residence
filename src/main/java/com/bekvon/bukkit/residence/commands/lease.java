@@ -121,9 +121,12 @@ public class lease implements cmd {
 
 		plugin.msg(player, lm.General_Separator);
 		for (ClaimedResidence one : list) {
-		    if (!pi.isInRange())
+		    if (!pi.isEntryOk())
 			continue;
 
+		    if (pi.isBreak())
+			break;
+		    
 		    if (res.isOwner(player))
 			plugin.msg(player, lm.Economy_LeaseList, pi.getPositionForOutput(), one.getName(), plugin.getLeaseManager().getExpireTime(one), one.getOwner());
 		    else
@@ -138,8 +141,8 @@ public class lease implements cmd {
 		if (args.length == 3) {
 		    ClaimedResidence res = plugin.getResidenceManager().getByName(args[2]);
 		    if (res == null || plugin.getLeaseManager().isLeased(res)) {
-			int cost = plugin.getLeaseManager().getRenewCost(res);
-			plugin.msg(player, lm.Economy_LeaseRenewalCost, args[2], cost);
+			double cost = plugin.getLeaseManager().getRenewCostD(res);
+			plugin.msg(player, lm.Economy_LeaseRenewalCost, args[2], plugin.getEconomyManager().format(cost));
 		    } else {
 			plugin.msg(player, lm.Economy_LeaseNotExpire);
 		    }
@@ -152,8 +155,8 @@ public class lease implements cmd {
 		}
 		String area = res.getName();
 		if (plugin.getLeaseManager().isLeased(res)) {
-		    int cost = plugin.getLeaseManager().getRenewCost(res);
-		    plugin.msg(player, lm.Economy_LeaseRenewalCost, area, cost);
+		    double cost = plugin.getLeaseManager().getRenewCostD(res);
+		    plugin.msg(player, lm.Economy_LeaseRenewalCost, area, plugin.getEconomyManager().format(cost));
 		} else {
 		    plugin.msg(player, lm.Economy_LeaseNotExpire);
 		}

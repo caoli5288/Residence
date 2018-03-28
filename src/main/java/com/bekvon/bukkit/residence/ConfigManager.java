@@ -58,6 +58,7 @@ public class ConfigManager {
     protected boolean BlockAnyTeleportation;
     protected int infoToolId;
     protected int AutoCleanUpDays;
+    protected boolean AutoCleanUpRegenerate;
     protected int selectionToolId;
     protected boolean adminOps;
     protected boolean AdminFullAccess;
@@ -112,6 +113,7 @@ public class ConfigManager {
     protected boolean TeleportTitleMessage;
     protected int VisualizerRowSpacing;
     protected int VisualizerCollumnSpacing;
+    protected int VisualizerSkipBy;
     private int VisualizerFrameCap;
     private int VisualizerSidesCap;
     protected boolean flagsInherit;
@@ -136,6 +138,7 @@ public class ConfigManager {
     protected String language;
     protected String DefaultWorld;
     protected String DateFormat;
+    protected String DateFormatShort;
     protected String TimeZone;
     protected boolean preventBuildInRent;
     protected boolean PreventSubZoneRemoval;
@@ -158,6 +161,7 @@ public class ConfigManager {
     protected boolean UUIDConvertion = true;
     protected boolean OfflineMode = false;
     protected boolean SelectionIgnoreY = false;
+    protected boolean SelectionIgnoreYInSubzone = false;
     protected boolean NoCostForYBlocks = false;
     protected boolean useVisualizer;
     protected boolean DisableListeners;
@@ -295,6 +299,12 @@ public class ConfigManager {
 	File f = new File(plugin.getDataFolder(), "flags.yml");
 	YamlConfiguration conf = YamlConfiguration.loadConfiguration(f);
 
+//	if (!conf.isConfigurationSection("Global.CompleteDisable"))
+//	    conf.crea.createSection("Global.CompleteDisable");
+
+	if (!conf.isList("Global.TotalFlagDisabling"))
+	    conf.set("Global.TotalFlagDisabling", Arrays.asList("Completely", "Disabled", "Particular", "Flags"));
+
 	for (Flags fl : Flags.values()) {
 	    if (conf.isBoolean("Global.FlagPermission." + fl.getName()))
 		continue;
@@ -308,8 +318,19 @@ public class ConfigManager {
 	ConfigurationSection guiSection = conf.getConfigurationSection("Global.FlagGui");
 
 	for (Flags fl : Flags.values()) {
-	    guiSection.set(fl.getName() + ".Id", fl.getId());
-	    guiSection.set(fl.getName() + ".Data", fl.getData());
+	    if (guiSection.isInt(fl.getName() + ".Id") && guiSection.isInt(fl.getName() + ".Data")) {
+
+		String data = "";
+		if (guiSection.getInt(fl.getName() + ".Data") != 0)
+		    data = "-" + guiSection.getInt(fl.getName() + ".Data");
+
+		guiSection.set(fl.getName(), guiSection.getInt(fl.getName() + ".Id") + data);
+	    } else {
+		String data = "";
+		if (fl.getData() != 0)
+		    data = "-" + guiSection.getInt(fl.getName() + ".Data");
+		guiSection.set(fl.getName(), fl.getId() + data);
+	    }
 	}
 
 	try {
@@ -411,6 +432,12 @@ public class ConfigManager {
 
 	c.getW().addComment("Global.Selection.IgnoreY", "By setting this to true, all selections will be made from bedrock to sky ignoring Y coordinates");
 	SelectionIgnoreY = c.get("Global.Selection.IgnoreY", false);
+
+	c.getW().addComment("Global.Selection.IgnoreYInSubzone",
+	    "When this set to true, selections inside existing residence will be from bottom to top of that residence",
+	    "When this set to false, selections inside existing residence will be exactly as they are");
+	SelectionIgnoreYInSubzone = c.get("Global.Selection.IgnoreYInSubzone", false);
+
 	c.getW().addComment("Global.Selection.NoCostForYBlocks", "By setting this to true, player will only pay for x*z blocks ignoring height",
 	    "This will lower residence price by up to 256 times, so adjust block price BEFORE enabling this");
 	NoCostForYBlocks = c.get("Global.Selection.NoCostForYBlocks", false);
@@ -659,6 +686,8 @@ public class ConfigManager {
 	AutoCleanUp = c.get("Global.AutoCleanUp.Use", false);
 	c.getW().addComment("Global.AutoCleanUp.Days", "For how long player should be offline to delete hes residence");
 	AutoCleanUpDays = c.get("Global.AutoCleanUp.Days", 60);
+	c.getW().addComment("Global.AutoCleanUp.Regenerate", "Do you want to regenetate old residence area", "This requires world edit to be present");
+	AutoCleanUpRegenerate = c.get("Global.AutoCleanUp.Regenerate", false);
 	c.getW().addComment("Global.AutoCleanUp.Worlds", "Worlds to be included in check list");
 	AutoCleanUpWorlds = c.get("Global.AutoCleanUp.Worlds", Arrays.asList(defaultWorldName));
 
@@ -741,6 +770,10 @@ public class ConfigManager {
 	c.getW().addComment("Global.DateFormat", "Sets date format when shown in example lease or rent expire date",
 	    "How to use it properly, more information can be found at http://www.tutorialspoint.com/java/java_date_time.htm");
 	DateFormat = c.get("Global.DateFormat", "E yyyy.MM.dd 'at' hh:mm:ss a zzz");
+
+	c.getW().addComment("Global.DateFormatShort", "Sets date format when shown in example lease or rent expire date",
+	    "How to use it properly, more information can be found at http://www.tutorialspoint.com/java/java_date_time.htm");
+	DateFormatShort = c.get("Global.DateFormatShort", "MM.dd hh:mm");
 
 	c.getW().addComment("Global.TimeZone", "Sets time zone for showing date, usefull when server is in different country then main server player base",
 	    "Full list of posible time zones can be found at http://www.mkyong.com/java/java-display-list-of-timezone-with-gmt/");
@@ -892,8 +925,8 @@ public class ConfigManager {
 	VisualizerRange = c.get("Global.Visualizer.Range", 16);
 	c.getW().addComment("Global.Visualizer.ShowFor", "For how long in miliseconds (5000 = 5sec) to show particle effects");
 	VisualizerShowFor = c.get("Global.Visualizer.ShowFor", 5000);
-	c.getW().addComment("Global.Visualizer.updateInterval", "How often in miliseconds update particles for player");
-	VisualizerUpdateInterval = c.get("Global.Visualizer.updateInterval", 20);
+	c.getW().addComment("Global.Visualizer.updateInterval", "How often in ticks to update particles for player");
+	VisualizerUpdateInterval = c.get("Global.Visualizer.updateInterval", 5);
 	c.getW().addComment("Global.Visualizer.RowSpacing", "Spacing in blocks between particle effects for rows");
 	VisualizerRowSpacing = c.get("Global.Visualizer.RowSpacing", 2);
 	if (VisualizerRowSpacing < 1)
@@ -903,8 +936,16 @@ public class ConfigManager {
 	if (VisualizerCollumnSpacing < 1)
 	    VisualizerCollumnSpacing = 1;
 
+	c.getW().addComment("Global.Visualizer.SkipBy",
+	    "Defines by how many particles we need to skip",
+	    "This will create moving particle effect and will improve overall look of selection",
+	    "By increasing this number, you can decrease update interval");
+	VisualizerSkipBy = c.get("Global.Visualizer.SkipBy", 5);
+	if (VisualizerSkipBy < 1)
+	    VisualizerSkipBy = 1;
+
 	c.getW().addComment("Global.Visualizer.FrameCap", "Maximum amount of frame particles to show for one player");
-	VisualizerFrameCap = c.get("Global.Visualizer.FrameCap", 2000);
+	VisualizerFrameCap = c.get("Global.Visualizer.FrameCap", 500);
 	if (VisualizerFrameCap < 1)
 	    VisualizerFrameCap = 1;
 
@@ -1119,6 +1160,18 @@ public class ConfigManager {
 
     public void loadFlags() {
 	FileConfiguration flags = YamlConfiguration.loadConfiguration(new File(plugin.dataFolder, "flags.yml"));
+
+	if (flags.isList("Global.TotalFlagDisabling")) {
+	    List<String> globalDisable = flags.getStringList("Global.TotalFlagDisabling");
+
+	    for (String fl : globalDisable) {
+		Flags flag = Flags.getFlag(fl);
+		if (flag == null)
+		    continue;
+		flag.setGlobalyEnabled(false);
+	    }
+	}
+
 	globalCreatorDefaults = FlagPermissions.parseFromConfigNode("CreatorDefault", flags.getConfigurationSection("Global"));
 	globalResidenceDefaults = FlagPermissions.parseFromConfigNode("ResidenceDefault", flags.getConfigurationSection("Global"));
 	loadGroups();
@@ -1240,6 +1293,10 @@ public class ConfigManager {
 
     public int getVisualizerCollumnSpacing() {
 	return VisualizerCollumnSpacing;
+    }
+
+    public int getVisualizerSkipBy() {
+	return VisualizerSkipBy;
     }
 
     public int getVisualizerUpdateInterval() {
@@ -1368,6 +1425,10 @@ public class ConfigManager {
 
     public int getResidenceFileCleanDays() {
 	return AutoCleanUpDays;
+    }
+
+    public boolean isAutoCleanUpRegenerate() {
+	return AutoCleanUpRegenerate;
     }
 
     public boolean isUseClean() {
@@ -1584,6 +1645,10 @@ public class ConfigManager {
 	return DateFormat;
     }
 
+    public String getDateFormatShort() {
+	return DateFormatShort;
+    }
+
     public String getTimeZone() {
 	return TimeZone;
     }
@@ -1642,6 +1707,10 @@ public class ConfigManager {
 
     public boolean isSelectionIgnoreY() {
 	return SelectionIgnoreY;
+    }
+
+    public boolean isSelectionIgnoreYInSubzone() {
+	return SelectionIgnoreYInSubzone;
     }
 
     public boolean isNoCostForYBlocks() {

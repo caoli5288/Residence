@@ -22,7 +22,7 @@ public class VersionChecker {
 	version = getCurrent();
     }
 
-    private Version version = Version.v1_11_R1;
+    private Version version = Version.v1_12_R1;
 
     public Version getVersion() {
 	return version;
@@ -130,7 +130,7 @@ public class VersionChecker {
 
     public String getNewVersion() {
 	try {
-	    HttpURLConnection con = (HttpURLConnection) new URL("http://www.spigotmc.org/api/general.php").openConnection();
+	    HttpURLConnection con = (HttpURLConnection) new URL("https://www.spigotmc.org/api/general.php").openConnection();
 	    con.setDoOutput(true);
 	    con.setRequestMethod("POST");
 	    con.getOutputStream().write(("key=98BE0FE67F88AB82B4C197FAF1DC3B69206EFDCC4D3B80FC83A00037510B99B4&resource=" + resource).getBytes("UTF-8"));

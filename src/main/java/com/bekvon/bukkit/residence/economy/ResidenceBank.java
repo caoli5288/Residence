@@ -11,39 +11,57 @@ import com.bekvon.bukkit.residence.protection.FlagPermissions.FlagCombo;
 import org.bukkit.entity.Player;
 
 public class ResidenceBank {
-    int storedMoney;
+    Double storedMoney;
     ClaimedResidence res;
 
     public ResidenceBank(ClaimedResidence parent) {
-	storedMoney = 0;
+	storedMoney = 0D;
 	res = parent;
     }
 
+    @Deprecated
     public int getStoredMoney() {
+	return storedMoney.intValue();
+    }
+
+    public Double getStoredMoneyD() {
 	return storedMoney;
     }
 
-    public void setStoredMoney(int amount) {
+    public String getStoredMoneyFormated() {
+	try {
+	    return Residence.getInstance().getEconomyManager().format(storedMoney);
+	} catch (Exception e) {
+	    return String.valueOf(this.storedMoney);
+	}
+    }
+
+    public void setStoredMoney(double amount) {
 	storedMoney = amount;
     }
 
-    public void add(int amount) {
+    public void add(double amount) {
 	storedMoney = storedMoney + amount;
     }
 
-    public boolean hasEnough(int amount) {
+    public boolean hasEnough(double amount) {
 	if (storedMoney >= amount)
 	    return true;
 	return false;
     }
 
-    public void subtract(int amount) {
+    public void subtract(double amount) {
 	storedMoney = storedMoney - amount;
 	if (storedMoney < 0)
-	    storedMoney = 0;
+	    storedMoney = 0D;
     }
 
+    @Deprecated
     public void withdraw(CommandSender sender, int amount, boolean resadmin) {
+	withdraw(sender, (double) amount, resadmin);
+    }
+
+    public void withdraw(CommandSender sender, double amount, boolean resadmin) {
 	if (!(sender instanceof Player))
 	    return;
 	Player player = (Player) sender;
@@ -60,11 +78,16 @@ public class ResidenceBank {
 	}
 	if (sender instanceof Player && Residence.getInstance().getEconomyManager().add(sender.getName(), amount) || !(sender instanceof Player)) {
 	    this.subtract(amount);
-	    Residence.getInstance().msg(sender, lm.Bank_Withdraw, String.format("%d", amount));
+	    Residence.getInstance().msg(sender, lm.Bank_Withdraw, String.format("%.2f", amount));
 	}
     }
 
+    @Deprecated
     public void deposit(CommandSender sender, int amount, boolean resadmin) {
+	deposit(sender, (double) amount, resadmin);
+    }
+
+    public void deposit(CommandSender sender, double amount, boolean resadmin) {
 	if (!(sender instanceof Player))
 	    return;
 	Player player = (Player) sender;
@@ -81,7 +104,7 @@ public class ResidenceBank {
 	}
 	if (sender instanceof Player && Residence.getInstance().getEconomyManager().subtract(sender.getName(), amount) || !(sender instanceof Player)) {
 	    this.add(amount);
-	    Residence.getInstance().msg(sender, lm.Bank_Deposit, String.format("%d", amount));
+	    Residence.getInstance().msg(sender, lm.Bank_Deposit, Residence.getInstance().getEconomyManager().format(amount));
 	}
     }
 }

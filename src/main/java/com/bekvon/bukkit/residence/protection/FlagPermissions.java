@@ -53,7 +53,10 @@ public class FlagPermissions {
     }
 
     public static enum FlagState {
-	TRUE, FALSE, NEITHER, INVALID
+	TRUE, FALSE, NEITHER, INVALID;
+	public String getName() {
+	    return name().toLowerCase();
+	}
     }
 
     public static void addMaterialToUseFlag(Material mat, Flags flag) {
@@ -630,7 +633,7 @@ public class FlagPermissions {
 	return root;
     }
 
-    private HashMap<String, Map<String, Boolean>> clone(Map<String, Map<String, Boolean>> map) {
+    private static HashMap<String, Map<String, Boolean>> clone(Map<String, Map<String, Boolean>> map) {
 	HashMap<String, Map<String, Boolean>> nm = new HashMap<String, Map<String, Boolean>>();
 	for (Entry<String, Map<String, Boolean>> one : map.entrySet()) {
 	    nm.put(one.getKey(), new HashMap<String, Boolean>(one.getValue()));
@@ -837,9 +840,16 @@ public class FlagPermissions {
 	    int i = -1;
 	    int t = 0;
 	    while (it.hasNext()) {
+		Entry<String, Boolean> next = it.next();
+		String fname = next.getKey();
+
+		Flags flag = Flags.getFlag(fname);
+
+		if (flag != null && !flag.isGlobalyEnabled())
+		    continue;
+
 		i++;
 		t++;
-		Entry<String, Boolean> next = it.next();
 
 		if (totalShow > 0 && t > totalShow) {
 		    break;
@@ -851,12 +861,12 @@ public class FlagPermissions {
 		}
 
 		if (next.getValue()) {
-		    sbuild.append("&2").append("+").append(next.getKey());
+		    sbuild.append("&2").append("+").append(flag);
 		    if (it.hasNext()) {
 			sbuild.append(" ");
 		    }
 		} else {
-		    sbuild.append("&3").append("-").append(next.getKey());
+		    sbuild.append("&3").append("-").append(flag);
 		    if (it.hasNext()) {
 			sbuild.append(" ");
 		    }
@@ -896,6 +906,13 @@ public class FlagPermissions {
 		continue;
 
 	    if (!residence && !getposibleFlags().contains(one.getKey()))
+		continue;
+
+	    String fname = one.getKey();
+
+	    Flags flag = Flags.getFlag(fname);
+
+	    if (flag != null && !flag.isGlobalyEnabled())
 		continue;
 
 	    flags.add(one.getKey());
