@@ -11,7 +11,9 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import static com.bekvon.bukkit.residence.$.nil;
 
@@ -40,7 +42,17 @@ public class PlaceholderSupport extends EZPlaceholderHook {
 
     public String onPlaceholderRequest(Player p, String input) {
         Iterator<String> itr = Arrays.asList(input.split(";")).iterator();
-        ClaimedResidence residence = plugin.getResidenceManager().getByName(itr.next());
+        String label = itr.next();
+        if (label.equalsIgnoreCase("*")) {
+            List<ClaimedResidence> all = plugin.getPlayerManager().getResidencePlayer(p).getResList();
+            if (all.isEmpty()) {
+                return "";
+            }
+            StringJoiner joiner = new StringJoiner(",");
+            all.forEach(el -> joiner.add(el.getName()));
+            return joiner.toString();
+        }
+        ClaimedResidence residence = plugin.getResidenceManager().getByName(label);
         if (nil(residence)) {
             return "null";
         }

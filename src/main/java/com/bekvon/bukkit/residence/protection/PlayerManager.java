@@ -17,7 +17,6 @@ import com.bekvon.bukkit.residence.containers.Flags;
 import com.bekvon.bukkit.residence.containers.ResidencePlayer;
 import com.bekvon.bukkit.residence.containers.lm;
 import com.bekvon.bukkit.residence.permissions.PermissionGroup;
-import com.bekvon.bukkit.residence.utils.Debug;
 
 public class PlayerManager implements ResidencePlayerInterface {
     private ConcurrentHashMap<String, ResidencePlayer> players = new ConcurrentHashMap<String, ResidencePlayer>();
@@ -59,7 +58,7 @@ public class PlayerManager implements ResidencePlayerInterface {
 	} else {
 	    resPlayer.updatePlayer(player);
 	    if (recalculate)
-		resPlayer.RecalculatePermissions();
+		resPlayer.recalculatePermissions();
 	}
 	return resPlayer;
     }
@@ -67,7 +66,7 @@ public class PlayerManager implements ResidencePlayerInterface {
     public ResidencePlayer playerJoin(UUID uuid) {
 	ResidencePlayer resPlayer = playersUuid.get(uuid);
 	if (resPlayer != null) {
-	    resPlayer.RecalculatePermissions();
+	    resPlayer.recalculatePermissions();
 	} else {
 	    OfflinePlayer off = Bukkit.getOfflinePlayer(uuid);
 	    if (off != null) {
@@ -251,7 +250,7 @@ public class PlayerManager implements ResidencePlayerInterface {
 	if (playersUuid.containsKey(player.getUniqueId())) {
 	    resPlayer = playersUuid.get(player.getUniqueId());
 	    resPlayer.updatePlayer(player);
-	    resPlayer.RecalculatePermissions();
+	    resPlayer.recalculatePermissions();
 	} else {
 	    resPlayer = playerJoin(player);
 	}
@@ -271,7 +270,7 @@ public class PlayerManager implements ResidencePlayerInterface {
 	if (players.containsKey(player.toLowerCase())) {
 	    resPlayer = players.get(player.toLowerCase());
 	    if (recalculate || resPlayer.isOnline())
-		resPlayer.RecalculatePermissions();
+		resPlayer.recalculatePermissions();
 	} else {
 	    resPlayer = playerJoin(player);
 	}

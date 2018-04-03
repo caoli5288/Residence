@@ -1,12 +1,28 @@
 package com.bekvon.bukkit.residence.listeners;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.UUID;
-
+import com.bekvon.bukkit.residence.L2Pool;
+import com.bekvon.bukkit.residence.Residence;
+import com.bekvon.bukkit.residence.chat.ChatChannel;
+import com.bekvon.bukkit.residence.containers.Flags;
+import com.bekvon.bukkit.residence.containers.ResidencePlayer;
+import com.bekvon.bukkit.residence.containers.StuckInfo;
+import com.bekvon.bukkit.residence.containers.Visualizer;
+import com.bekvon.bukkit.residence.containers.lm;
+import com.bekvon.bukkit.residence.economy.rent.RentableLand;
+import com.bekvon.bukkit.residence.economy.rent.RentedLand;
+import com.bekvon.bukkit.residence.event.ResidenceChangedEvent;
+import com.bekvon.bukkit.residence.event.ResidenceDeleteEvent;
+import com.bekvon.bukkit.residence.event.ResidenceFlagChangeEvent;
+import com.bekvon.bukkit.residence.event.ResidenceRenameEvent;
+import com.bekvon.bukkit.residence.gui.SetFlag;
+import com.bekvon.bukkit.residence.permissions.PermissionGroup;
+import com.bekvon.bukkit.residence.protection.ClaimedResidence;
+import com.bekvon.bukkit.residence.protection.FlagPermissions;
+import com.bekvon.bukkit.residence.protection.FlagPermissions.FlagCombo;
+import com.bekvon.bukkit.residence.protection.FlagPermissions.FlagState;
+import com.bekvon.bukkit.residence.signsStuff.Signs;
+import com.bekvon.bukkit.residence.utils.GetTime;
+import com.bekvon.bukkit.residence.utils.VersionChecker.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -55,29 +71,12 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.ItemStack;
 
-import com.bekvon.bukkit.residence.Residence;
-import com.bekvon.bukkit.residence.chat.ChatChannel;
-import com.bekvon.bukkit.residence.containers.Flags;
-import com.bekvon.bukkit.residence.containers.ResidencePlayer;
-import com.bekvon.bukkit.residence.containers.StuckInfo;
-import com.bekvon.bukkit.residence.containers.Visualizer;
-import com.bekvon.bukkit.residence.containers.lm;
-import com.bekvon.bukkit.residence.economy.rent.RentableLand;
-import com.bekvon.bukkit.residence.economy.rent.RentedLand;
-import com.bekvon.bukkit.residence.event.ResidenceChangedEvent;
-import com.bekvon.bukkit.residence.event.ResidenceDeleteEvent;
-import com.bekvon.bukkit.residence.event.ResidenceFlagChangeEvent;
-import com.bekvon.bukkit.residence.event.ResidenceRenameEvent;
-import com.bekvon.bukkit.residence.gui.SetFlag;
-import com.bekvon.bukkit.residence.permissions.PermissionGroup;
-import com.bekvon.bukkit.residence.protection.ClaimedResidence;
-import com.bekvon.bukkit.residence.protection.FlagPermissions;
-import com.bekvon.bukkit.residence.protection.FlagPermissions.FlagCombo;
-import com.bekvon.bukkit.residence.protection.FlagPermissions.FlagState;
-import com.bekvon.bukkit.residence.signsStuff.Signs;
-import com.bekvon.bukkit.residence.utils.Debug;
-import com.bekvon.bukkit.residence.utils.GetTime;
-import com.bekvon.bukkit.residence.utils.VersionChecker.Version;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
 
 public class ResidencePlayerListener implements Listener {
 
@@ -832,16 +831,17 @@ public class ResidencePlayerListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
-	String pname = event.getPlayer().getName();
-	currentRes.remove(pname);
-	lastUpdate.remove(pname);
-	lastOutsideLoc.remove(pname);
-	plugin.getChatManager().removeFromChannel(pname);
-	plugin.getPlayerListener().removePlayerResidenceChat(pname);
-	plugin.addOfflinePlayerToChache(event.getPlayer());
-	if (plugin.getAutoSelectionManager().getList().containsKey(pname.toLowerCase()))
-	    plugin.getAutoSelectionManager().getList().remove(pname);
-    }
+		String pname = event.getPlayer().getName();
+		currentRes.remove(pname);
+		lastUpdate.remove(pname);
+		lastOutsideLoc.remove(pname);
+		plugin.getChatManager().removeFromChannel(pname);
+		plugin.getPlayerListener().removePlayerResidenceChat(pname);
+		plugin.addOfflinePlayerToChache(event.getPlayer());
+		if (plugin.getAutoSelectionManager().getList().containsKey(pname.toLowerCase()))
+			plugin.getAutoSelectionManager().getList().remove(pname);
+		L2Pool.quit(event.getPlayer());
+	}
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerWorldChange(PlayerChangedWorldEvent event) {
@@ -890,19 +890,21 @@ public class ResidencePlayerListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerJoin(PlayerJoinEvent event) {
-	Player player = event.getPlayer();
-	lastUpdate.put(player.getName(), 0L);
-	if (plugin.getPermissionManager().isResidenceAdmin(player)) {
-	    plugin.turnResAdminOn(player);
-	}
-	handleNewLocation(player, player.getLocation(), true);
+		Player player = event.getPlayer();
+		lastUpdate.put(player.getName(), 0L);
+		if (plugin.getPermissionManager().isResidenceAdmin(player)) {
+			plugin.turnResAdminOn(player);
+		}
+		handleNewLocation(player, player.getLocation(), true);
 
-	plugin.getPlayerManager().playerJoin(player, false);
+		plugin.getPlayerManager().playerJoin(player, false);
 
-	if (player.hasPermission("residence.versioncheck")) {
-	    plugin.getVersionChecker().VersionCheck(player);
+		if (player.hasPermission("residence.versioncheck")) {
+			plugin.getVersionChecker().VersionCheck(player);
+		}
+
+		L2Pool.getResPlayerFuture(player);
 	}
-    }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPlayerSpawn(PlayerRespawnEvent event) {

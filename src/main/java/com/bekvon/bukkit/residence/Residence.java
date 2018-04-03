@@ -1,5 +1,6 @@
 package com.bekvon.bukkit.residence;
 
+import com.avaje.ebean.EbeanServer;
 import com.bekvon.bukkit.residence.allNms.v1_10Events;
 import com.bekvon.bukkit.residence.allNms.v1_8Events;
 import com.bekvon.bukkit.residence.allNms.v1_9Events;
@@ -61,6 +62,7 @@ import com.bekvon.bukkit.residence.utils.VersionChecker.Version;
 import com.bekvon.bukkit.residence.utils.YmlMaker;
 import com.bekvon.bukkit.residence.vaultinterface.ResidenceVaultAdapter;
 import com.earth2me.essentials.Essentials;
+import com.mengcraft.simpleorm.EbeanHandler;
 import com.residence.mcstats.Metrics;
 import com.residence.zip.ZipLibrary;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
@@ -79,6 +81,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -107,6 +110,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.bekvon.bukkit.residence.$.nil;
 
 /**
  * @author Gary Smoak - bekvon
@@ -196,6 +201,7 @@ public class Residence extends JavaPlugin {
     public HashMap<String, ClaimedResidence> teleportMap = new HashMap<String, ClaimedResidence>();
 
     private String prefix = ChatColor.GREEN + "[" + ChatColor.GOLD + "Residence" + ChatColor.GREEN + "]" + ChatColor.GRAY;
+    private static EbeanServer dataServer;
 
     public boolean isSpigot() {
         return spigotPlatform;
@@ -372,6 +378,10 @@ public class Residence extends JavaPlugin {
 
             Bukkit.getConsoleSender().sendMessage(getPrefix() + " Disabled!");
         }
+    }
+
+    public static EbeanServer getDataServer() {
+        return dataServer;
     }
 
     @Override
@@ -719,6 +729,21 @@ public class Residence extends JavaPlugin {
             } catch (IOException e) {
                 // Failed to submit the stats :-(
             }
+
+            saveResource("simpleorm.yml", false);
+            Map<String, String> orm = new Yaml().load(new FileInputStream(new File(getDataFolder(), "simpleorm.yml")));
+
+            if (nil(dataServer)) {
+                EbeanHandler db = new EbeanHandler(this);
+                db.setUrl(orm.get("url"));
+                db.setUser(orm.get("user"));
+                db.setPassword(orm.get("password"));
+                db.define(ResidencePlayerBean.class);
+                db.initialize();
+                db.install();
+                dataServer = db.getServer();
+            }
+
             Bukkit.getConsoleSender().sendMessage(getPrefix() + " Enabled! Version " + this.getDescription().getVersion() + " by Zrips");
             initsuccess = true;
 
@@ -738,6 +763,8 @@ public class Residence extends JavaPlugin {
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             PlaceholderSupport.hook(this);
         }
+
+        PluginHelper.addExecutor(this, "resplayeradmin", new ResPlayerAdmin());
     }
 
     public SignUtil getSignUtil() {

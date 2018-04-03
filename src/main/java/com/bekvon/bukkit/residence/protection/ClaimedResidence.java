@@ -1,6 +1,8 @@
 package com.bekvon.bukkit.residence.protection;
 
+import com.bekvon.bukkit.residence.L2Pool;
 import com.bekvon.bukkit.residence.Residence;
+import com.bekvon.bukkit.residence.ResidencePlayerBean;
 import com.bekvon.bukkit.residence.chat.ChatChannel;
 import com.bekvon.bukkit.residence.containers.Flags;
 import com.bekvon.bukkit.residence.containers.MinimizeMessages;
@@ -271,16 +273,17 @@ public class ClaimedResidence {
             return true;
         ResidencePlayer rPlayer = plugin.getPlayerManager().getResidencePlayer(player);
         PermissionGroup group = rPlayer.getGroup();
-        if (area.getXSize() > group.getMaxX()) {
-            plugin.msg(player, lm.Area_ToBigX, area.getXSize(), group.getMaxX());
+        ResidencePlayerBean b = L2Pool.getResPlayer(player);
+        if (area.getXSize() > group.getMaxX() + b.getMaxWeight()) {
+            plugin.msg(player, lm.Area_ToBigX, area.getXSize(), group.getMaxX() + b.getMaxWeight());
             return false;
         }
-        if (area.getYSize() > group.getMaxY()) {
-            plugin.msg(player, lm.Area_ToBigY, area.getYSize(), group.getMaxY());
+        if (area.getYSize() > group.getMaxY() + b.getMaxHeight()) {
+            plugin.msg(player, lm.Area_ToBigY, area.getYSize(), group.getMaxY() + b.getMaxHeight());
             return false;
         }
-        if (area.getZSize() > group.getMaxZ()) {
-            plugin.msg(player, lm.Area_ToBigZ, area.getZSize(), group.getMaxZ());
+        if (area.getZSize() > group.getMaxZ() + b.getMaxWeight()) {
+            plugin.msg(player, lm.Area_ToBigZ, area.getZSize(), group.getMaxZ() + b.getMaxWeight());
             return false;
         }
         return true;

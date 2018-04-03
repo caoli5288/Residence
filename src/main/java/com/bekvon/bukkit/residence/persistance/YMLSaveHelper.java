@@ -32,12 +32,13 @@ public class YMLSaveHelper {
 		f = ymlfile;
 	}
 
-	public synchronized void save() throws IOException {
+	public void save() throws IOException {
 		if (f.isFile())
 			f.delete();
 		FileOutputStream fout = new FileOutputStream(f);
 		OutputStreamWriter osw = new OutputStreamWriter(fout, "UTF8");
 		yml.dump(root, osw);
+		osw.flush();
 		osw.close();
 	}
 
@@ -45,7 +46,7 @@ public class YMLSaveHelper {
 	public void load() throws IOException {
 		InputStream fis = new FileInputStream(f);
 		try {
-			root = (Map<String, Object>) yml.load(fis);
+			root = yml.load(fis);
 		} catch (ReaderException e) {
 			System.out.println("[Residence] - Failed to load " + yml.getName() + " file!");
 		}
