@@ -7,39 +7,31 @@ import org.yaml.snakeyaml.reader.ReaderException;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
+import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class YMLSaveHelper {
 
-	File f;
-	Yaml yml;
-	Map<String, Object> root;
+	private File f;
+	private Yaml yml;
+	private Map<String, Object> root;
 
 	public YMLSaveHelper(File ymlfile) throws IOException {
+		f = Objects.requireNonNull(ymlfile);
 		DumperOptions options = new DumperOptions();
 		options.setDefaultFlowStyle(FlowStyle.BLOCK);
 		options.setAllowUnicode(true);
 		yml = new Yaml(options);
-
-		root = new LinkedHashMap<String, Object>();
-		if (ymlfile == null)
-			throw new IOException("YMLSaveHelper: null file...");
-		f = ymlfile;
+		root = new LinkedHashMap<>();
 	}
 
 	public void save() throws IOException {
-		if (f.isFile())
-			f.delete();
-		FileOutputStream fout = new FileOutputStream(f);
-		OutputStreamWriter osw = new OutputStreamWriter(fout, "UTF8");
-		yml.dump(root, osw);
-		osw.flush();
-		osw.close();
+		Files.write(f.toPath(), yml.dump(root).getBytes("utf8"));
+		System.out.println("#YML_SAVER saved " + f + " content(s) size " + f.length());
 	}
 
 	@SuppressWarnings("unchecked")

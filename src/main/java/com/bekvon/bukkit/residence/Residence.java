@@ -81,6 +81,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.BufferedReader;
@@ -96,6 +97,8 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -310,23 +313,15 @@ public class Residence extends JavaPlugin {
             }
         }
     };
-    private Runnable autoSave = new Runnable() {
+    private BukkitRunnable autoSave = new BukkitRunnable() {
         @Override
         public void run() {
             try {
-                if (initsuccess) {
-                    Bukkit.getScheduler().runTaskAsynchronously(Residence.this, new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                saveYml();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            return;
-                        }
-                    });
+                if (!initsuccess) {
+                    cancel();
+                    return;
                 }
+                saveYml();
             } catch (Exception ex) {
                 Logger.getLogger("Minecraft").log(Level.SEVERE, getPrefix() + " SEVERE SAVE ERROR", ex);
             }
@@ -695,7 +690,7 @@ public class Residence extends JavaPlugin {
                 autosaveInt = 1;
             }
             autosaveInt = autosaveInt * 60 * 20;
-            autosaveBukkitId = server.getScheduler().scheduleSyncRepeatingTask(this, autoSave, autosaveInt, autosaveInt);
+            autosaveBukkitId = server.getScheduler().runTaskTimerAsynchronously(this, autoSave, autosaveInt, autosaveInt).getTaskId();
             healBukkitId = server.getScheduler().scheduleSyncRepeatingTask(this, doHeals, 20, getConfigManager().getHealInterval() * 20);
             feedBukkitId = server.getScheduler().scheduleSyncRepeatingTask(this, doFeed, 20, getConfigManager().getFeedInterval() * 20);
             if (getConfigManager().AutoMobRemoval())
@@ -1049,19 +1044,15 @@ public class Residence extends JavaPlugin {
                 File backupFolder = new File(worldFolder, "Backup");
                 backupFolder.mkdirs();
                 File backupFile = new File(backupFolder, "res_" + entry.getKey() + ".yml");
-                if (backupFile.isFile()) {
-                    backupFile.delete();
-                }
-                ymlSaveLoc.renameTo(backupFile);
+                Files.move(ymlSaveLoc.toPath(), backupFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             }
-            tmpFile.renameTo(ymlSaveLoc);
+            Files.move(tmpFile.toPath(), ymlSaveLoc.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
         }
 
         // For Sale save
         File ymlSaveLoc = new File(saveFolder, "forsale.yml");
         File tmpFile = new File(saveFolder, "tmp_forsale.yml");
         yml = new YMLSaveHelper(tmpFile);
-        yml.save();
         yml.getRoot().put("Version", saveVersion);
         yml.getRoot().put("Economy", tmanager.save());
         yml.save();
