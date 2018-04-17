@@ -757,6 +757,7 @@ public class Residence extends JavaPlugin {
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             PlaceholderSupport.hook(this);
+            new PlaceholderResPlayer(this).hook();
         }
 
         PluginHelper.addExecutor(this, "resplayeradmin", new ResPlayerAdmin());
